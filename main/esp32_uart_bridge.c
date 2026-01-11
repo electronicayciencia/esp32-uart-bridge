@@ -73,4 +73,3 @@ void app_main(void) {
     xTaskCreate(uart2usb_task, "uart->usb", 4096, NULL, 1, NULL);
     xTaskCreate(usb2uart_task, "usb->uart", 4096, NULL, 1, NULL);
 }
-

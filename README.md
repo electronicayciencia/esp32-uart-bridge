@@ -86,4 +86,3 @@ idf.py menuconfig
 The default baud rate is `115200` and port number `0` (GPIO Rx 20, Tx 21).
 
 Note ESP32-C3's CDC ACM class does not support set line mode. So the baud rate is fixed in compile time.
-
