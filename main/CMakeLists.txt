@@ -1,2 +1,9 @@
-idf_component_register(SRCS "esp32_uart_bridge.c"
-                    INCLUDE_DIRS ".")
+idf_component_register(SRCS 
+                        "esp32_uart_bridge.c"
+                        "usb_direct.c"
+                    INCLUDE_DIRS 
+                        "."
+                    REQUIRES 
+                        vfs
+                        esp_driver_uart
+                    )
