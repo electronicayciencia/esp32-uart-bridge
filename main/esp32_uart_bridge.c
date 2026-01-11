@@ -1,10 +1,3 @@
-/*
- *        esp32_uart_bridge.c
- *
- *        Based on the work of (c) 2023 Alien Green LLC
- *
- */
-
 #include <fcntl.h>
 #include <stdio.h>
 
@@ -25,10 +18,34 @@
 
 #define USB_READ_CHUNK_SIZE 64
 
+void usb2uart_task(void* pvParameters) {
+    uint8_t buf[USB_READ_CHUNK_SIZE];
+
+    while (true) {
+        int rx = usb_read(buf, sizeof(buf));
+        //ESP_LOGI("USB->UART", "Read %d bytes", rx);
+        if (rx > 0) {
+            uart_write_bytes(UBRIDGE_UART_PORT_NUM, buf, rx);
+            uart_flush(UBRIDGE_UART_PORT_NUM);
+        }
+
+        vTaskDelay(1); // minimal yield for watchdog
+    }
+}
+
+void uart2usb_task(void* pvParameters) {
+    uint8_t buf[USB_READ_CHUNK_SIZE];
+
+    while (true) {
+        int rx = uart_read_bytes(UBRIDGE_UART_PORT_NUM, buf, sizeof(buf), 10 / portTICK_PERIOD_MS);
+        //ESP_LOGI("UART->USB", "Read %d bytes", rx);
+        usb_write(buf, rx);
+
+        vTaskDelay(1); // minimal yield for watchdog
+    }
+}
+
 void app_main(void) {
-    
-    /* Configure parameters of an UART driver,
-     * communication pins and install the driver */
     uart_config_t uart_config = {
             .baud_rate = UBRIDGE_UART_BAUD_RATE,
             .data_bits = UART_DATA_8_BITS,
@@ -53,28 +70,7 @@ void app_main(void) {
     ESP_LOGI("Bridge", "UART Baudrate %d, Data bits 8, Parity None, Stop bits 1",
         UBRIDGE_UART_BAUD_RATE);
 
-
-    /* Not using usb_serial_jtag_driver 
-     * See https://github.com/electronicayciencia/esp32-misc/tree/master/usb_serial_jtag_read */
-
-    /* Configure a bridge buffer for the i/o data */
-    uint8_t buf[USB_READ_CHUNK_SIZE];
-
-    while (true) {
-        // USB->UART
-        int rx = usb_read(buf, sizeof(buf));
-        //ESP_LOGI("USB->UART", "Read %d bytes", rx);
-        if (rx > 0) {
-            uart_write_bytes(UBRIDGE_UART_PORT_NUM, buf, rx);
-            uart_flush(UBRIDGE_UART_PORT_NUM);
-        }
-
-        // UART->USB
-        rx = uart_read_bytes(UBRIDGE_UART_PORT_NUM, buf, sizeof(buf), 10 / portTICK_PERIOD_MS);
-        //ESP_LOGI("UART->USB", "Read %d bytes", rx);
-        usb_write(buf, rx);
-
-        vTaskDelay(1); // minimal yield for watchdog
-    }
+    xTaskCreate(uart2usb_task, "uart->usb", 4096, NULL, 1, NULL);
+    xTaskCreate(usb2uart_task, "usb->uart", 4096, NULL, 1, NULL);
 }
 

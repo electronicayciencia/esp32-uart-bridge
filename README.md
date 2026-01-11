@@ -30,7 +30,6 @@ Connect the target MCU serial interface to the ESP32-C3 as follows.
 
 Note: **UART0** is also console output. So connect the target device after the Bridge has already started.
 
--------------------------------------------------------------------------
 | ESP32-C3 chip         | Kconfig       | ESP32-C3 Pin | Target MCU Pin |
 | ----------------------|---------------|--------------|----------------|
 | UART Port             | UART_PORT_NUM |     0        |                |
@@ -52,7 +51,6 @@ See connection diagram below:
 
 To prevent debug messages to reach target device, use UART1. For example:
 
--------------------------------------------------------------------------
 | ESP32-C3 chip         | Kconfig       | ESP32-C3 Pin | Target MCU Pin |
 | ----------------------|---------------|--------------|----------------|
 | UART Port             | UART_PORT_NUM |     1        |                |
